@@ -19,7 +19,6 @@ class CreateAdminsTable extends Migration
             $table->text('leader_id');
             $table->text('password');
             $table->text('category');
-            $table->boolean('is_admin')->nullable();
             $table->boolean('status')->default(0);
         });
         Schema::create('member', function (Blueprint $table) {
@@ -37,8 +36,6 @@ class CreateAdminsTable extends Migration
             $table->text('name');
             $table->text('email');
             $table->text('password');
-            $table->text('created_at');
-            $table->text('updated_at');
         });
     }
 

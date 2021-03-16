@@ -3,7 +3,6 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MainController;
 use App\Http\Controllers\FileUpload;
-use App\Http\Controllers\AdminController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,15 +15,12 @@ use App\Http\Controllers\AdminController;
 |
 */
 
-Route::get('/', function () {
-    return view('register_member');
-});
-
 Route::post('/auth/save',[MainController::class, 'save'])->name('auth.save');
-Route::post('check',[MainController::class, 'check'])->name('auth.check');
+Route::post('check','MainController@check')->name('auth.check');
 Route::get('/auth/logout',[MainController::class, 'logout'])->name('auth.logout');
 
 Route::get('/auth/login',[MainController::class, 'login'])->name('auth.login');
+Route::get('/auth/adminlogin',[MainController::class, 'adminlogin'])->name('auth.adminlogin');
 Route::get('/auth/register-team',[MainController::class, 'registerteam'])->name('auth.register-team');
 Route::get('/admin/settings',[MainController::class,'settings']);
 Route::get('/admin/profile',[MainController::class,'profile']);

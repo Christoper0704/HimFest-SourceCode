@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\Member;
 use App\Http\Controllers\Controller;
 use App\Helpers\Helper;
-use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use App\Models\Admin;
 
 class MainController extends Controller
 {
@@ -19,6 +19,9 @@ class MainController extends Controller
     }
     function registermember(){
         return view('auth.register-member');
+    }
+    function adminlogin(){
+        return view('auth.adminlogin');
     }
 
     function save(Request $request){
@@ -88,6 +91,9 @@ class MainController extends Controller
     }
 
     function check(Request $request){
+        $parameter = $request->submit;
+
+        if($parameter == "1"){
         //Validate requests
         $request->validate([
             'name'=>'required',
@@ -95,8 +101,6 @@ class MainController extends Controller
         ]);
         $userInfo = Team::where('name','=', $request->name)->first();
         $userInfo2 = Member::where('name','=', $request->name)->first();
-
-        $input = $request->all();
 
         if(!$userInfo){
             return back()->with('fail','We do not recognize your team name');
@@ -108,6 +112,27 @@ class MainController extends Controller
                 return redirect('admin/dashboard');
             }else{
                 return back()->with('fail','Incorrect password');
+            }
+        }
+    }
+        if($parameter == "2")
+        {
+            $request->validate([
+                'email'=>'required|email',
+                'password'=>'required'
+            ]);
+            $userInfo = Admin::where('email','=', $request->email)->first();
+
+            if(!$userInfo){
+                return back()->with('fail','We do not recognize your team name');
+            }else{
+                //check password
+                if(Hash::check($request->password, $userInfo->password)){
+                    $request->session()->put('LoggedUser',$userInfo->id);
+                    return redirect('admin/dashboard');
+                }else{
+                    return back()->with('fail','Incorrect password');
+                }
             }
         }
     }
@@ -123,11 +148,6 @@ class MainController extends Controller
         $data = ['LoggedUserInfo' =>Team::where('id','=', session('LoggedUser'))->first()];
         $users = Member::where('team_id','=',session('LoggedUser2'))->get();
         return view('admin.dashboard',['member'=>$users],$data);
-    }
-
-    public function adminHome()
-    {
-        return view('adminHome');
     }
 
 }

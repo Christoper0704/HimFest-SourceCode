@@ -24,31 +24,41 @@ class MainController extends Controller
         return view('auth.adminlogin');
     }
 
+
     function save(Request $request){
         
         //Validate requests
         $parameter = $request->submit;
 
         //Insert data into table Team
+        if(Team::where('name','=', $request->teamname)->exists()){
+            if(Team::where('category','=',$request->category)->exists()){
+                return back()->with('fail','Nama Team telah terpakai');
+            }
+        }
         if($parameter == "1")
         {
             $request->validate([
-                'name'=>'required|unique:teams,name',
                 'password'=>'required|min:6|max:12'
             ]);
-            $id = Helper::IDGenerator(new Team, 'leader_id',2,'24');
+            $id = Helper::IDGenerator(new Team, 'id',3,'21');
             $team = new Team;
+            $member = new Member;
+            $team->id = $id;
+            $member->team_id = $id;
+            $member->name = $request->name;
+            $member->email = $request->email;
+            $member->lineid = $request->lineid;
+            $member->phone = $request->phone;
             $team->leader_id = $id;
-            $team->name = $request->name;
+            $team->name = $request->teamname;
             $team->password = Hash::make($request->password);
             $team->category = $request->category;
+            $team->referrer = $request->referrer;
             $save = $team->save();
+            $save = $member->save();
             
             if($save){
-                $member = new Member;
-                $member->team_id = $id;
-                $member->name = $request->name;
-                $save = $member->save();
                 return $this->getIDLeader($team->leader_id);
             }else{
                 return back()->with('fail','Something went wrong, try again later');
@@ -74,7 +84,8 @@ class MainController extends Controller
             $save = $member->save();
             
             if($save){
-                return redirect('admin/dashboard')->with('Success','New User has been successfuly added to database');
+                return $this->updateIDmember($member->id);
+                
             }else{
                 return back()->with('fail','Something went wrong, try again later');
             }
@@ -85,9 +96,18 @@ class MainController extends Controller
         $data = Member::where('team_id','=', $leader_id)->first();
         $data2 = Team::where('leader_id','=', $leader_id)->first();
         $data2->leader_id = $leader_id.$data->id;
+        $data->member_id = $data2->leader_id;
+        $data2->id = $data->team_id;
         $data->save();
         $data2->save();
         return redirect('auth/login')->with('Success','New User has been successfuly added to database');
+    }
+
+    function updateIDmember($member_id){
+        $data = Member::where('id','=', $member_id)->first();
+        $data->member_id = $data->team_id.$data->id;
+        $data->save();
+        return redirect('admin/dashboard')->with('Success','New User has been successfuly added to database');
     }
 
     function check(Request $request){
@@ -100,7 +120,7 @@ class MainController extends Controller
             'password'=>'required'
         ]);
         $userInfo = Team::where('name','=', $request->name)->first();
-        $userInfo2 = Member::where('name','=', $request->name)->first();
+        $teamid = $userInfo->id;
 
         if(!$userInfo){
             return back()->with('fail','We do not recognize your team name');
@@ -108,7 +128,7 @@ class MainController extends Controller
             //check password
             if(Hash::check($request->password, $userInfo->password)){
                 $request->session()->put('LoggedUser',$userInfo->id);
-                $request->session()->put('LoggedUser2',$userInfo2->team_id);
+                $request->session()->put('LoggedUser2',$teamid);
                 return redirect('admin/dashboard');
             }else{
                 return back()->with('fail','Incorrect password');
@@ -129,7 +149,7 @@ class MainController extends Controller
                 //check password
                 if(Hash::check($request->password, $userInfo->password)){
                     $request->session()->put('LoggedUser',$userInfo->id);
-                    return redirect('admin/dashboard');
+                    return redirect('admin/admin_dashboard');
                 }else{
                     return back()->with('fail','Incorrect password');
                 }
@@ -150,4 +170,10 @@ class MainController extends Controller
         return view('admin.dashboard',['member'=>$users],$data);
     }
 
+    function admindashboard(){
+        $data = ['LoggedUserInfo' =>Admin::where('id','=', session('LoggedUser'))->first()];
+        $team = Team::all();
+        $member = Member::all();
+        return view('admin.admin_dashboard',$data,['member'=>$member,'team'=>$team]);
+    }
 }

@@ -32,4 +32,5 @@ Route::group(['middleware'=>['AuthCheck2']], function(){
     Route::get('/auth/register-member',[MainController::class, 'registermember'])->name('auth.register-member');
     Route::get('/upload-file',[FileUpload::class, 'createForm']);
     Route::post('/upload-file',[FileUpload::class, 'fileUpload'])->name('fileUpload'); 
+    Route::get('/admin/admin_dashboard',[MainController::class, 'admindashboard']);
 });

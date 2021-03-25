@@ -29,7 +29,7 @@
                 @csrf
                     <div class="form-group">
                         <label>Email</label>
-                        <input type="text" class="form-control" name="email" placeholder="Enter your team name" value="{{ old('name') }}">
+                        <input type="text" class="form-control" name="email" placeholder="Enter your email" value="{{ old('name') }}">
                         <span class="text-danger">@error('name'){{ $message }} @enderror</span>
                     </div>
                     <div class="form-group">
